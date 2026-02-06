@@ -1,0 +1,7 @@
+DAILY SECURITY REPORT
+---------------------
+INFO Logs: 2
+WARNING Logs: 1
+ERROR Logs: 2
+Risk Score: 27
+Total Alerts: 1
