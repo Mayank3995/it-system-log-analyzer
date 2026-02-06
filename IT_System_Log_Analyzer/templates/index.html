@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IT System Log Analyzer</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f1f4f9;
+        }
+
+        /* HEADER */
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* DASHBOARD */
+        .dashboard {
+            padding: 25px;
+        }
+
+        /* STATS CARDS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .card p {
+            margin: 6px 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info { color: #2563eb; }
+        .warn { color: #d97706; }
+        .error { color: #dc2626; }
+        .threat { color: #7c3aed; }
+        .total { color: #059669; }
+
+        /* CHART GRID */
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .chart-box h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    IT System Log Analyzer – Live Monitoring Dashboard
+</div>
+
+<div class="dashboard">
+
+    <!-- STAT CARDS -->
+    <div class="stats">
+        <div class="card info">
+            <h2 id="infoCount">0</h2>
+            <p>INFO Logs</p>
+        </div>
+        <div class="card warn">
+            <h2 id="warnCount">0</h2>
+            <p>WARNING Logs</p>
+        </div>
+        <div class="card error">
+            <h2 id="errorCount">0</h2>
+            <p>ERROR Logs</p>
+        </div>
+        <div class="card threat">
+            <h2 id="threatCount">0</h2>
+            <p>Security Threats</p>
+        </div>
+        <div class="card total">
+            <h2 id="totalCount">0</h2>
+            <p>Total Logs</p>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts">
+        <div class="chart-box">
+            <h3>Log Severity Analysis</h3>
+            <canvas id="severityChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h3>Security Threat Activity</h3>
+            <canvas id="threatChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h3>Log Distribution</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h3>System Activity Trend</h3>
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+let severityChart, threatChart, pieChart, lineChart;
+
+async function loadData() {
+    const res = await fetch("/log-data");
+    return await res.json();
+}
+
+async function renderDashboard() {
+    const d = await loadData();
+
+    // Update cards
+    infoCount.innerText = d.info;
+    warnCount.innerText = d.warning;
+    errorCount.innerText = d.error;
+    threatCount.innerText = d.threats;
+    totalCount.innerText = d.total;
+
+    if (severityChart) severityChart.destroy();
+    if (threatChart) threatChart.destroy();
+    if (pieChart) pieChart.destroy();
+    if (lineChart) lineChart.destroy();
+
+    severityChart = new Chart(severityChartCtx = document.getElementById("severityChart"), {
+        type: "bar",
+        data: {
+            labels: ["INFO", "WARNING", "ERROR"],
+            datasets: [{
+                data: [d.info, d.warning, d.error],
+                backgroundColor: ["#3b82f6", "#f59e0b", "#ef4444"],
+                borderRadius: 6
+            }]
+        },
+        options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+
+    threatChart = new Chart(document.getElementById("threatChart"), {
+        type: "bar",
+        data: {
+            labels: ["Threats"],
+            datasets: [{
+                data: [d.threats],
+                backgroundColor: "#8b5cf6",
+                borderRadius: 6
+            }]
+        },
+        options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+
+    pieChart = new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: ["INFO", "WARNING", "ERROR"],
+            datasets: [{
+                data: [d.info, d.warning, d.error],
+                backgroundColor: ["#3b82f6", "#f59e0b", "#ef4444"]
+            }]
+        }
+    });
+
+    lineChart = new Chart(document.getElementById("lineChart"), {
+        type: "line",
+        data: {
+            labels: ["Logs"],
+            datasets: [{
+                data: [d.total],
+                borderColor: "#10b981",
+                tension: 0.4
+            }]
+        }
+    });
+}
+
+renderDashboard();
+setInterval(renderDashboard, 4000);
+</script>
+
+</body>
+</html>
